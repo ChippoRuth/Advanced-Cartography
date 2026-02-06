@@ -20,7 +20,7 @@
             margin: 0;
         }
         </style>
-        <title></title>
+        <title>BEYOND THE GLOBAL AVERAGES</title>
     </head>
     <body>
         <div id="map">
@@ -107,6 +107,31 @@
                 popup._contentNode.classList.remove('media');
             }
         }
+        var title = new L.Control({'position':'topleft'});
+        title.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        title.update = function () {
+            this._div.innerHTML = '<h2>BEYOND THE GLOBAL AVERAGES</h2>';
+        };
+        title.addTo(map);
+        var abstract = new L.Control({'position':'topleft'});
+        abstract.onAdd = function (map) {
+            this._div = L.DomUtil.create('div',
+            'leaflet-control abstract');
+            this._div.id = 'abstract'
+
+                abstract.show();
+                return this._div;
+            };
+            abstract.show = function () {
+                this._div.classList.remove("abstract");
+                this._div.classList.add("abstractUncollapsed");
+                this._div.innerHTML = 'By comparing safe drinking water access data from 2010 to 2024, this map shows the areas where the  decline in this critical indicator was observed, reveling hidden vulnerabilities beyond the global averages';
+        };
+        abstract.addTo(map);
         var zoomControl = L.control.zoom({
             position: 'topleft'
         }).addTo(map);
