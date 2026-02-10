@@ -10,7 +10,8 @@
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
-        <link rel="stylesheet" href="css/leaflet-search.css">
+        <link rel="stylesheet" href="css/filter.css">
+<link rel="stylesheet" href="css/nouislider.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <style>
         html, body, #map {
@@ -36,13 +37,31 @@
         <script src="js/labelgun.min.js"></script>
         <script src="js/labels.js"></script>
         <script src="js/leaflet.photon.js"></script>
-        <script src="js/leaflet-search.js"></script>
-        <script src="data/CNTR_RG_01M_2024_4326_0.js"></script>
-        <script src="data/International_boundary_1.js"></script>
+        <script src="js/tailDT.js"></script>
+<script src="js/nouislider.min.js"></script>
+<script src="js/wNumb.js"></script>
+        <script src="data/Nodata_0.js"></script>
+        <script src="data/DifferenceinSafeDrinkingwaterAccess_1.js"></script>
+        <script src="data/AreasofFocus_2.js"></script>
         <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                color: 'rgba(255, 255, 0, 1.00)',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: 'rgba(255, 255, 0, 1.00)',
+                fillOpacity: 1
+              });
+            }
+        }
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        })
+        }).fitBounds([[-84.66382218080112,-177.41651003787968],[86.53439303015014,178.81217620561554]]);
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -122,14 +141,20 @@
             this._div = L.DomUtil.create('div',
             'leaflet-control abstract');
             this._div.id = 'abstract'
-
-                abstract.show();
+                this._div.setAttribute("onmouseenter", "abstract.show()");
+                this._div.setAttribute("onmouseleave", "abstract.hide()");
+                this.hide();
                 return this._div;
             };
+            abstract.hide = function () {
+                this._div.classList.remove("abstractUncollapsed");
+                this._div.classList.add("abstract");
+                this._div.innerHTML = 'i'
+            }
             abstract.show = function () {
                 this._div.classList.remove("abstract");
                 this._div.classList.add("abstractUncollapsed");
-                this._div.innerHTML = 'By comparing safe drinking water access data from 2010 to 2024, this map shows the areas where the  decline in this critical indicator was observed, reveling hidden vulnerabilities beyond the global averages';
+                this._div.innerHTML = 'This map shows the average propotion of people accessing safely managed drinking water in the world,  comparing data from 2010 to 2024. A specific focus on 4 countries with decline above 5%, reveling hidden vulnerabilities beyond the global averages.';
         };
         abstract.addTo(map);
         var zoomControl = L.control.zoom({
@@ -137,11 +162,20 @@
         }).addTo(map);
         var bounds_group = new L.featureGroup([]);
         function setBounds() {
-            if (bounds_group.getLayers().length) {
-                map.fitBounds(bounds_group.getBounds());
-            }
+            map.setMaxBounds(map.getBounds());
+            map.setMinZoom(map.getZoom());
         }
-        function pop_CNTR_RG_01M_2024_4326_0(feature, layer) {
+        function pop_Nodata_0(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
             var popupContent = '<table>\
                     <tr>\
                         <td colspan="2">' + (feature.properties['CNTR_ID'] !== null ? autolinker.link(String(feature.properties['CNTR_ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
@@ -184,9 +218,9 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_CNTR_RG_01M_2024_4326_0_0() {
+        function style_Nodata_0_0() {
             return {
-                pane: 'pane_CNTR_RG_01M_2024_4326_0',
+                pane: 'pane_Nodata_0',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -196,69 +230,50 @@
                 fill: true,
                 fillOpacity: 1,
                 fillColor: 'rgba(192,190,190,1.0)',
-                interactive: true,
+                interactive: false,
             }
         }
-        map.createPane('pane_CNTR_RG_01M_2024_4326_0');
-        map.getPane('pane_CNTR_RG_01M_2024_4326_0').style.zIndex = 400;
-        map.getPane('pane_CNTR_RG_01M_2024_4326_0').style['mix-blend-mode'] = 'normal';
-        var layer_CNTR_RG_01M_2024_4326_0 = new L.geoJson(json_CNTR_RG_01M_2024_4326_0, {
+        map.createPane('pane_Nodata_0');
+        map.getPane('pane_Nodata_0').style.zIndex = 400;
+        map.getPane('pane_Nodata_0').style['mix-blend-mode'] = 'normal';
+        var layer_Nodata_0 = new L.geoJson(json_Nodata_0, {
             attribution: '',
-            interactive: true,
-            dataVar: 'json_CNTR_RG_01M_2024_4326_0',
-            layerName: 'layer_CNTR_RG_01M_2024_4326_0',
-            pane: 'pane_CNTR_RG_01M_2024_4326_0',
-            onEachFeature: pop_CNTR_RG_01M_2024_4326_0,
-            style: style_CNTR_RG_01M_2024_4326_0_0,
+            interactive: false,
+            dataVar: 'json_Nodata_0',
+            layerName: 'layer_Nodata_0',
+            pane: 'pane_Nodata_0',
+            onEachFeature: pop_Nodata_0,
+            style: style_Nodata_0_0,
         });
-        bounds_group.addLayer(layer_CNTR_RG_01M_2024_4326_0);
-        map.addLayer(layer_CNTR_RG_01M_2024_4326_0);
-        function pop_International_boundary_1(feature, layer) {
+        bounds_group.addLayer(layer_Nodata_0);
+        map.addLayer(layer_Nodata_0);
+        function pop_DifferenceinSafeDrinkingwaterAccess_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
             var popupContent = '<table>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['CNTR_ID'] !== null ? autolinker.link(String(feature.properties['CNTR_ID']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <th scope="row">Country Name</th>\
+                        <td>' + (feature.properties['NAME_ENGL'] !== null ? autolinker.link(String(feature.properties['NAME_ENGL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['CNTR_NAME'] !== null ? autolinker.link(String(feature.properties['CNTR_NAME']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <th scope="row">2010 %</th>\
+                        <td>' + (feature.properties['Proportion_difference_data_2010'] !== null ? autolinker.link(String(feature.properties['Proportion_difference_data_2010']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['NAME_ENGL'] !== null ? autolinker.link(String(feature.properties['NAME_ENGL']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <th scope="row">2024 %</th>\
+                        <td>' + (feature.properties['Proportion_difference_data_2024'] !== null ? autolinker.link(String(feature.properties['Proportion_difference_data_2024']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['NAME_FREN'] !== null ? autolinker.link(String(feature.properties['NAME_FREN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['ISO3_CODE'] !== null ? autolinker.link(String(feature.properties['ISO3_CODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['SVRG_UN'] !== null ? autolinker.link(String(feature.properties['SVRG_UN']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CAPT'] !== null ? autolinker.link(String(feature.properties['CAPT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['EU_STAT'] !== null ? autolinker.link(String(feature.properties['EU_STAT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['EFTA_STAT'] !== null ? autolinker.link(String(feature.properties['EFTA_STAT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['CC_STAT'] !== null ? autolinker.link(String(feature.properties['CC_STAT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['NAME_GERM'] !== null ? autolinker.link(String(feature.properties['NAME_GERM']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Proportion_difference_data_Country Name'] !== null ? autolinker.link(String(feature.properties['Proportion_difference_data_Country Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Proportion_difference_data_2010'] !== null ? autolinker.link(String(feature.properties['Proportion_difference_data_2010']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Proportion_difference_data_2024'] !== null ? autolinker.link(String(feature.properties['Proportion_difference_data_2024']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Proportion_difference_data_Difference'] !== null ? autolinker.link(String(feature.properties['Proportion_difference_data_Difference']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <th scope="row">Change %</th>\
+                        <td>' + (feature.properties['Proportion_difference_data_Difference'] !== null ? autolinker.link(String(feature.properties['Proportion_difference_data_Difference']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -268,10 +283,10 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_International_boundary_1_0(feature) {
+        function style_DifferenceinSafeDrinkingwaterAccess_1_0(feature) {
             if (feature.properties['Proportion_difference_data_Difference'] >= -13.000000 && feature.properties['Proportion_difference_data_Difference'] <= -5.000000 ) {
                 return {
-                pane: 'pane_International_boundary_1',
+                pane: 'pane_DifferenceinSafeDrinkingwaterAccess_1',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -286,7 +301,7 @@
             }
             if (feature.properties['Proportion_difference_data_Difference'] >= -5.000000 && feature.properties['Proportion_difference_data_Difference'] <= 0.000000 ) {
                 return {
-                pane: 'pane_International_boundary_1',
+                pane: 'pane_DifferenceinSafeDrinkingwaterAccess_1',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -301,7 +316,7 @@
             }
             if (feature.properties['Proportion_difference_data_Difference'] >= 0.000000 && feature.properties['Proportion_difference_data_Difference'] <= 10.000000 ) {
                 return {
-                pane: 'pane_International_boundary_1',
+                pane: 'pane_DifferenceinSafeDrinkingwaterAccess_1',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -316,7 +331,7 @@
             }
             if (feature.properties['Proportion_difference_data_Difference'] >= 10.000000 && feature.properties['Proportion_difference_data_Difference'] <= 20.000000 ) {
                 return {
-                pane: 'pane_International_boundary_1',
+                pane: 'pane_DifferenceinSafeDrinkingwaterAccess_1',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -331,7 +346,7 @@
             }
             if (feature.properties['Proportion_difference_data_Difference'] >= 20.000000 && feature.properties['Proportion_difference_data_Difference'] <= 32.000000 ) {
                 return {
-                pane: 'pane_International_boundary_1',
+                pane: 'pane_DifferenceinSafeDrinkingwaterAccess_1',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -345,20 +360,80 @@
             }
             }
         }
-        map.createPane('pane_International_boundary_1');
-        map.getPane('pane_International_boundary_1').style.zIndex = 401;
-        map.getPane('pane_International_boundary_1').style['mix-blend-mode'] = 'normal';
-        var layer_International_boundary_1 = new L.geoJson(json_International_boundary_1, {
+        map.createPane('pane_DifferenceinSafeDrinkingwaterAccess_1');
+        map.getPane('pane_DifferenceinSafeDrinkingwaterAccess_1').style.zIndex = 401;
+        map.getPane('pane_DifferenceinSafeDrinkingwaterAccess_1').style['mix-blend-mode'] = 'normal';
+        var layer_DifferenceinSafeDrinkingwaterAccess_1 = new L.geoJson(json_DifferenceinSafeDrinkingwaterAccess_1, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_International_boundary_1',
-            layerName: 'layer_International_boundary_1',
-            pane: 'pane_International_boundary_1',
-            onEachFeature: pop_International_boundary_1,
-            style: style_International_boundary_1_0,
+            dataVar: 'json_DifferenceinSafeDrinkingwaterAccess_1',
+            layerName: 'layer_DifferenceinSafeDrinkingwaterAccess_1',
+            pane: 'pane_DifferenceinSafeDrinkingwaterAccess_1',
+            onEachFeature: pop_DifferenceinSafeDrinkingwaterAccess_1,
+            style: style_DifferenceinSafeDrinkingwaterAccess_1_0,
         });
-        bounds_group.addLayer(layer_International_boundary_1);
-        map.addLayer(layer_International_boundary_1);
+        bounds_group.addLayer(layer_DifferenceinSafeDrinkingwaterAccess_1);
+        map.addLayer(layer_DifferenceinSafeDrinkingwaterAccess_1);
+        function pop_AreasofFocus_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Country</th>\
+                        <td>' + (feature.properties['Country'] !== null ? autolinker.link(String(feature.properties['Country']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Population</th>\
+                        <td>' + (feature.properties['Population'] !== null ? autolinker.link(String(feature.properties['Population']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_AreasofFocus_2_0() {
+            return {
+                pane: 'pane_AreasofFocus_2',
+        rotationAngle: 0.0,
+        rotationOrigin: 'center center',
+        icon: L.icon({
+            iconUrl: 'markers/AreasofFocus_2.svg',
+            iconSize: [52.44, 52.44]
+        }),
+                interactive: true,
+            }
+        }
+        map.createPane('pane_AreasofFocus_2');
+        map.getPane('pane_AreasofFocus_2').style.zIndex = 402;
+        map.getPane('pane_AreasofFocus_2').style['mix-blend-mode'] = 'normal';
+        var layer_AreasofFocus_2 = new L.geoJson(json_AreasofFocus_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_AreasofFocus_2',
+            layerName: 'layer_AreasofFocus_2',
+            pane: 'pane_AreasofFocus_2',
+            onEachFeature: pop_AreasofFocus_2,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.marker(latlng, style_AreasofFocus_2_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_AreasofFocus_2);
+        map.addLayer(layer_AreasofFocus_2);
         const url = {"Nominatim OSM": "https://nominatim.openstreetmap.org/search?format=geojson&addressdetails=1&",
         "France BAN": "https://api-adresse.data.gouv.fr/search/?"}
         var photonControl = L.control.photon({
@@ -413,8 +488,9 @@
             }
         });
         var overlaysTree = [
-            {label: 'International_boundary<br /><table><tr><td style="text-align: center;"><img src="legend/International_boundary_1_1350.png" /></td><td>-13 - -5</td></tr><tr><td style="text-align: center;"><img src="legend/International_boundary_1_501.png" /></td><td>-5 - 0</td></tr><tr><td style="text-align: center;"><img src="legend/International_boundary_1_0102.png" /></td><td>0 - 10</td></tr><tr><td style="text-align: center;"><img src="legend/International_boundary_1_10203.png" /></td><td>10 - 20</td></tr><tr><td style="text-align: center;"><img src="legend/International_boundary_1_20324.png" /></td><td>20 - 32</td></tr></table>', layer: layer_International_boundary_1},
-            {label: '<img src="legend/CNTR_RG_01M_2024_4326_0.png" /> CNTR_RG_01M_2024_4326', layer: layer_CNTR_RG_01M_2024_4326_0},]
+            {label: '<img src="legend/AreasofFocus_2.png" /> Areas of Focus', layer: layer_AreasofFocus_2},
+            {label: 'Difference in Safe Drinking water Access (%)<br /><table><tr><td style="text-align: center;"><img src="legend/DifferenceinSafeDrinkingwaterAccess_1_1350.png" /></td><td>-13 - -5</td></tr><tr><td style="text-align: center;"><img src="legend/DifferenceinSafeDrinkingwaterAccess_1_501.png" /></td><td>-5 - 0</td></tr><tr><td style="text-align: center;"><img src="legend/DifferenceinSafeDrinkingwaterAccess_1_0102.png" /></td><td>0 - 10</td></tr><tr><td style="text-align: center;"><img src="legend/DifferenceinSafeDrinkingwaterAccess_1_10203.png" /></td><td>10 - 20</td></tr><tr><td style="text-align: center;"><img src="legend/DifferenceinSafeDrinkingwaterAccess_1_20324.png" /></td><td>20 - 32</td></tr></table>', layer: layer_DifferenceinSafeDrinkingwaterAccess_1},
+            {label: '<img src="legend/Nodata_0.png" /> No data', layer: layer_Nodata_0},]
         var lay = L.control.layers.tree(null, overlaysTree,{
             //namedToggle: true,
             //selectorBack: false,
@@ -476,25 +552,164 @@
             }  
         });       
         setBounds();
-        map.addControl(new L.Control.Search({
-            layer: layer_International_boundary_1,
-            initial: false,
-            hideMarkerOnCollapse: true,
-            propertyName: 'CNTR_NAME'}));
-        if (typeof url === 'undefined') {
-            document.getElementsByClassName('search-button')[0].className += ' fa fa-binoculars';
-        } else {
-            document.getElementsByClassName('search-button')[1].className += ' fa fa-binoculars';
+        var mapDiv = document.getElementById('map');
+        var row = document.createElement('div');
+        row.className="row";
+        row.id="all";
+        row.style.height = "100%";
+        var col1 = document.createElement('div');
+        col1.className="col9";
+        col1.id = "mapWindow";
+        col1.style.height = "99%";
+        col1.style.width = "80%";
+        col1.style.display = "inline-block";
+        var col2 = document.createElement('div');
+        col2.className="col3";
+        col2.id = "menu";
+        col2.style.display = "inline-block";
+        mapDiv.parentNode.insertBefore(row, mapDiv);
+        document.getElementById("all").appendChild(col1);
+        document.getElementById("all").appendChild(col2);
+        col1.appendChild(mapDiv)
+        var Filters = {"Proportion_difference_data_Difference": "int"};
+        function filterFunc() {
+          map.eachLayer(function(lyr){
+          if ("options" in lyr && "dataVar" in lyr["options"]){
+            features = this[lyr["options"]["dataVar"]].features.slice(0);
+            try{
+              for (key in Filters){
+                keyS = key.replace(/[^a-zA-Z0-9_]/g, "")
+                if (Filters[key] == "str" || Filters[key] == "bool"){
+                  var selection = [];
+                  var options = document.getElementById("sel_" + keyS).options
+                  for (var i=0; i < options.length; i++) {
+                    if (options[i].selected) selection.push(options[i].value);
+                  }
+                    try{
+                      if (key in features[0].properties){
+                        for (i = features.length - 1;
+                          i >= 0; --i){
+                          if (selection.indexOf(
+                          features[i].properties[key])<0
+                          && selection.length>0) {
+                          features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                  }
+                }
+                if (Filters[key] == "int"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (parseInt(features[i].properties[key])
+                          < sliderVals[0]
+                          || parseInt(features[i].properties[key])
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "real"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (features[i].properties[key]
+                          < sliderVals[0]
+                          || features[i].properties[key]
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "date"
+                  || Filters[key] == "datetime"
+                  || Filters[key] == "time"){
+                  try{
+                    if (key in features[0].properties){
+                      HTMLkey = key.replace(/[&\/\\#,+()$~%.'":*?<>{} ]/g, '');
+                      startdate = document.getElementById("dat_" +
+                        HTMLkey + "_date1").value.replace(" ", "T");
+                      enddate = document.getElementById("dat_" +
+                        HTMLkey + "_date2").value.replace(" ", "T");
+                      for (i = features.length - 1; i >= 0; --i){
+                        if (features[i].properties[key] < startdate
+                          || features[i].properties[key] > enddate){
+                          features.splice(i,1);
+                        }
+                      }
+                    }
+                  } catch(err){
+                  }
+                }
+              }
+            } catch(err){
+            }
+          this[lyr["options"]["layerName"]].clearLayers();
+          this[lyr["options"]["layerName"]].addData(features);
+          }
+          })
         }
-        resetLabels([layer_International_boundary_1]);
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_Proportion_difference_data_Difference = document.createElement("div");
+            div_Proportion_difference_data_Difference.id = "div_Proportion_difference_data_Difference";
+            div_Proportion_difference_data_Difference.className = "slider";
+            document.getElementById("menu").appendChild(div_Proportion_difference_data_Difference);
+            var lab_Proportion_difference_data_Difference = document.createElement('div');
+            lab_Proportion_difference_data_Difference.innerHTML  = 'Proportion_difference_data_Difference: <span id="val_Proportion_difference_data_Difference"></span>';
+            lab_Proportion_difference_data_Difference.className = 'filterlabel';
+            document.getElementById("menu").appendChild(lab_Proportion_difference_data_Difference);
+            var reset_Proportion_difference_data_Difference = document.createElement('div');
+            reset_Proportion_difference_data_Difference.innerHTML = 'clear filter';
+            reset_Proportion_difference_data_Difference.className = 'filterlabel';
+            lab_Proportion_difference_data_Difference.className = 'filterlabel';
+            reset_Proportion_difference_data_Difference.onclick = function() {
+                sel_Proportion_difference_data_Difference.noUiSlider.reset();
+            };
+            document.getElementById("menu").appendChild(reset_Proportion_difference_data_Difference);
+            var sel_Proportion_difference_data_Difference = document.getElementById('div_Proportion_difference_data_Difference');
+            noUiSlider.create(sel_Proportion_difference_data_Difference, {
+                connect: true,
+                start: [0, 32],
+                step: 1,
+                format: wNumb({
+                    decimals: 0,
+                    }),
+                range: {
+                min: 0,
+                max: 32
+                }
+            });
+            sel_Proportion_difference_data_Difference.noUiSlider.on('update', function (values) {
+            filterVals =[];
+            for (value in values){
+            filterVals.push(parseInt(value))
+            }
+            val_Proportion_difference_data_Difference = document.getElementById('val_Proportion_difference_data_Difference');
+            val_Proportion_difference_data_Difference.innerHTML = values.join(' - ');
+                filterFunc()
+            });
+        resetLabels([layer_DifferenceinSafeDrinkingwaterAccess_1]);
         map.on("zoomend", function(){
-            resetLabels([layer_International_boundary_1]);
+            resetLabels([layer_DifferenceinSafeDrinkingwaterAccess_1]);
         });
         map.on("layeradd", function(){
-            resetLabels([layer_International_boundary_1]);
+            resetLabels([layer_DifferenceinSafeDrinkingwaterAccess_1]);
         });
         map.on("layerremove", function(){
-            resetLabels([layer_International_boundary_1]);
+            resetLabels([layer_DifferenceinSafeDrinkingwaterAccess_1]);
         });
         </script>        
     </body>
